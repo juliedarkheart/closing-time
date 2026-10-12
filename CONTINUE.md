@@ -26,3 +26,11 @@
 2. Fix any input or presentation issues found manually.
 3. Run the first blind playtest and complete the seeded report.
 4. Only then start the LimeZu art pass.
+
+## Path repair and desktop smoke
+
+- The old literal Windows workspace path was removed.
+- The project now lives at `/home/julie/hermes-workspace/closing-time`.
+- Godot 4.6.3 launched a visible `Closing Time (DEBUG)` window from the new path.
+- Automated desktop input smoke sent movement plus `E`, `1`, and `2`; the process remained alive.
+- Full human blind playtest remains pending.

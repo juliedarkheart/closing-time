@@ -28,7 +28,16 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
     if not awaiting_choice and not dawn_reached:
-        var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+        var direction := Vector2.ZERO
+        if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
+            direction.x -= 1.0
+        if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
+            direction.x += 1.0
+        if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
+            direction.y -= 1.0
+        if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
+            direction.y += 1.0
+        direction = direction.normalized()
         player_position += direction * PLAYER_SPEED * delta
         player_position.x = clamp(player_position.x, SHOP_RECT.position.x + 24.0, SHOP_RECT.end.x - 24.0)
         player_position.y = clamp(player_position.y, SHOP_RECT.position.y + 24.0, SHOP_RECT.end.y - 24.0)
@@ -45,7 +54,7 @@ func _unhandled_input(event: InputEvent) -> void:
         elif event.keycode == KEY_2:
             _resolve_choice(2)
         return
-    if event.is_action_pressed("interact") and REGISTER_RECT.grow(28.0).has_point(player_position):
+    if event.keycode == KEY_E and REGISTER_RECT.grow(28.0).has_point(player_position):
         _start_next_encounter()
 
 func _start_next_encounter() -> void:
