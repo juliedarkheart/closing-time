@@ -49,13 +49,14 @@ func _unhandled_input(event: InputEvent) -> void:
     if not event is InputEventKey or not event.pressed or event.echo:
         return
     if awaiting_choice:
-        if event.keycode == KEY_1:
+        if event.keycode == KEY_1 or event.keycode == KEY_KP_1 or event.physical_keycode == KEY_1:
             _resolve_choice(1)
-        elif event.keycode == KEY_2:
+        elif event.keycode == KEY_2 or event.keycode == KEY_KP_2 or event.physical_keycode == KEY_2:
             _resolve_choice(2)
         return
-    if event.keycode == KEY_E and REGISTER_RECT.grow(28.0).has_point(player_position):
-        _start_next_encounter()
+    if event.keycode == KEY_E or event.physical_keycode == KEY_E:
+        if REGISTER_RECT.grow(28.0).has_point(player_position):
+            _start_next_encounter()
 
 func _start_next_encounter() -> void:
     if served_customers >= encounters.size():
@@ -76,35 +77,51 @@ func _resolve_choice(choice: int) -> void:
         stock -= 1
         cash += 4
         trust += 1
-        message = encounter["clue"] + " You chose: " + encounter["one"] + "."
+        message = encounter["clue"] + "\nYou chose: " + encounter["one"] + "."
     else:
         stock -= 1
         trust -= 1
-        message = encounter["clue"] + " You chose: " + encounter["two"] + "."
+        message = encounter["clue"] + "\nYou chose: " + encounter["two"] + "."
     served_customers += 1
     awaiting_choice = false
     message_time = 6.0
 
 func _draw() -> void:
     draw_rect(Rect2(0.0, 0.0, 960.0, 540.0), Color("101622"))
+    draw_rect(Rect2(20.0, 14.0, 920.0, 42.0), Color("182130"), true)
     draw_rect(SHOP_RECT, Color("2b3545"), true)
     draw_rect(SHOP_RECT, Color("91a4bd"), false, 4.0)
-    draw_rect(Rect2(110.0, 100.0, 180.0, 270.0), Color("3c4d5b"), true)
-    draw_rect(Rect2(330.0, 100.0, 180.0, 270.0), Color("3c4d5b"), true)
-    draw_rect(Rect2(550.0, 100.0, 100.0, 270.0), Color("3c4d5b"), true)
+    draw_rect(Rect2(110.0, 100.0, 180.0, 270.0), Color("4a5c68"), true)
+    draw_rect(Rect2(110.0, 100.0, 180.0, 270.0), Color("78909c"), false, 3.0)
+    draw_rect(Rect2(330.0, 100.0, 180.0, 270.0), Color("566451"), true)
+    draw_rect(Rect2(330.0, 100.0, 180.0, 270.0), Color("91a87b"), false, 3.0)
+    draw_rect(Rect2(550.0, 100.0, 100.0, 270.0), Color("66524b"), true)
+    draw_rect(Rect2(550.0, 100.0, 100.0, 270.0), Color("b88c75"), false, 3.0)
+    draw_string(ThemeDB.fallback_font, Vector2(126.0, 126.0), "COLD", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("dbe9ef"))
+    draw_string(ThemeDB.fallback_font, Vector2(346.0, 126.0), "WARM", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("e7f0cf"))
+    draw_string(ThemeDB.fallback_font, Vector2(566.0, 126.0), "ODD", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("f3d5c7"))
     draw_rect(REGISTER_RECT, Color("b8815a"), true)
     draw_rect(REGISTER_RECT, Color("e8c18d"), false, 3.0)
     draw_string(ThemeDB.fallback_font, Vector2(708.0, 212.0), "REGISTER", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("fff1d6"))
     draw_circle(player_position, 18.0, Color("e6b875"))
     draw_circle(player_position, 18.0, Color("fff1d6"), false, 3.0)
-    draw_string(ThemeDB.fallback_font, Vector2(30.0, 36.0), "CLOSING TIME  •  GRAYBOX SHIFT", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("f5d7a1"))
-    draw_string(ThemeDB.fallback_font, Vector2(30.0, 510.0), "WASD / ARROWS: move     E: next customer     1 / 2: choose", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("c4cfdd"))
-    draw_string(ThemeDB.fallback_font, Vector2(690.0, 110.0), "CASH: $%02d    STOCK: %02d" % [cash, stock], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
-    draw_string(ThemeDB.fallback_font, Vector2(30.0, 495.0), "CUSTOMERS: %02d/03    TRUST: %02d" % [served_customers, trust], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
+    draw_string(ThemeDB.fallback_font, Vector2(30.0, 42.0), "CLOSING TIME  •  GRAYBOX SHIFT", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("f5d7a1"))
+    draw_rect(Rect2(20.0, 478.0, 920.0, 44.0), Color("182130"), true)
+    draw_string(ThemeDB.fallback_font, Vector2(36.0, 502.0), "CUSTOMERS: %02d/03    TRUST: %02d" % [served_customers, trust], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
+    draw_string(ThemeDB.fallback_font, Vector2(430.0, 502.0), "WASD / ARROWS: move     E: register     1 / 2: choose", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("c4cfdd"))
+    draw_rect(Rect2(650.0, 72.0, 210.0, 40.0), Color("182130"), true)
+    draw_string(ThemeDB.fallback_font, Vector2(668.0, 98.0), "CASH: $%02d    STOCK: %02d" % [cash, stock], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
     if awaiting_choice:
-        draw_string(ThemeDB.fallback_font, Vector2(310.0, 392.0), encounters[current_encounter]["clue"], HORIZONTAL_ALIGNMENT_LEFT, 350, 15, Color("f5d7a1"))
-        draw_string(ThemeDB.fallback_font, Vector2(310.0, 414.0), "[1] " + encounters[current_encounter]["one"], HORIZONTAL_ALIGNMENT_LEFT, 350, 15, Color("dce8f4"))
-        draw_string(ThemeDB.fallback_font, Vector2(310.0, 436.0), "[2] " + encounters[current_encounter]["two"], HORIZONTAL_ALIGNMENT_LEFT, 350, 15, Color("dce8f4"))
+        draw_rect(Rect2(240.0, 338.0, 480.0, 126.0), Color("101622"), true)
+        draw_rect(Rect2(240.0, 338.0, 480.0, 126.0), Color("e8c18d"), false, 2.0)
+        draw_string(ThemeDB.fallback_font, Vector2(260.0, 362.0), encounters[current_encounter]["name"], HORIZONTAL_ALIGNMENT_LEFT, 440, 18, Color("fff1d6"))
+        draw_string(ThemeDB.fallback_font, Vector2(260.0, 384.0), encounters[current_encounter]["request"], HORIZONTAL_ALIGNMENT_LEFT, 440, 15, Color("dce8f4"))
+        draw_string(ThemeDB.fallback_font, Vector2(260.0, 408.0), encounters[current_encounter]["clue"], HORIZONTAL_ALIGNMENT_LEFT, 440, 15, Color("f5d7a1"))
+        draw_string(ThemeDB.fallback_font, Vector2(260.0, 432.0), "[1] " + encounters[current_encounter]["one"], HORIZONTAL_ALIGNMENT_LEFT, 440, 15, Color("dce8f4"))
+        draw_string(ThemeDB.fallback_font, Vector2(260.0, 454.0), "[2] " + encounters[current_encounter]["two"], HORIZONTAL_ALIGNMENT_LEFT, 440, 15, Color("dce8f4"))
     elif message_time > 0.0 or served_customers == 0 or dawn_reached:
-        draw_rect(Rect2(250.0, 420.0, 460.0, 42.0), Color("182130"), true)
-        draw_string(ThemeDB.fallback_font, Vector2(270.0, 447.0), message, HORIZONTAL_ALIGNMENT_LEFT, 420, 16, Color("fff1d6"))
+        draw_rect(Rect2(250.0, 400.0, 460.0, 62.0), Color("101622"), true)
+        draw_rect(Rect2(250.0, 400.0, 460.0, 62.0), Color("e8c18d"), false, 2.0)
+        var message_lines := message.split("\n")
+        for line_index in range(min(message_lines.size(), 2)):
+            draw_string(ThemeDB.fallback_font, Vector2(270.0, 422.0 + line_index * 20.0), message_lines[line_index], HORIZONTAL_ALIGNMENT_LEFT, 420, 16, Color("fff1d6"))
