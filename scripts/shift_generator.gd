@@ -31,6 +31,7 @@ var shift_conditions: Array[String] = [
     "The store radio only gets one station tonight."
 ]
 
+
 func _init(seed_value: int = 0) -> void:
     if seed_value == 0:
         randomizer.randomize()
@@ -50,6 +51,7 @@ func generate_shift(customer_count: int) -> Dictionary:
     incident_engine.prepare_shift(encounters.size())
     var mystery_index := randomizer.randi_range(0, mystery_threads.size() - 1)
     var condition_index := randomizer.randi_range(0, shift_conditions.size() - 1)
+
     var starting_stock := {
         "cold": randomizer.randi_range(2, 3),
         "warm": randomizer.randi_range(2, 3),

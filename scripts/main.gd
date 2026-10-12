@@ -21,6 +21,11 @@ var served_customers: int = 0
 var current_encounter: int = -1
 var customer_active: bool = false
 var question_used: bool = false
+var customer_visible: bool = false
+var customer_position: Vector2 = Vector2.ZERO
+var customer_phase: String = ""
+var customer_target: Vector2 = Vector2.ZERO
+var customer_browse_time: float = 0.0
 var held_item: String = ""
 var shelf_stock: Dictionary = {"cold": 2, "warm": 2, "odd": 2}
 var dawn_reached: bool = false
@@ -69,6 +74,7 @@ func _process(delta: float) -> void:
         player_position += direction * PLAYER_SPEED * delta
         player_position.x = clamp(player_position.x, SHOP_RECT.position.x + 24.0, SHOP_RECT.end.x - 24.0)
         player_position.y = clamp(player_position.y, SHOP_RECT.position.y + 24.0, SHOP_RECT.end.y - 24.0)
+    _update_customer(delta)
     if message_time > 0.0:
         message_time -= delta
     queue_redraw()
@@ -90,7 +96,11 @@ func _interact() -> void:
             message_time = 4.0
         return
     if customer_active and REGISTER_RECT.grow(28.0).has_point(player_position):
-        _serve_customer()
+        if customer_phase == "waiting":
+            _serve_customer()
+        else:
+            message = "The customer is still browsing. Give them a moment to reach the register."
+            message_time = 3.0
         return
     if not customer_active and REGISTER_RECT.grow(28.0).has_point(player_position):
         _start_next_encounter()
@@ -116,9 +126,31 @@ func _start_next_encounter() -> void:
         return
     current_encounter = served_customers
     customer_active = true
+    customer_visible = true
+    customer_phase = "entering"
+    customer_position = Vector2(850.0, 430.0)
+    customer_target = SHELF_RECTS[encounters[current_encounter]["category"]].get_center()
+    customer_browse_time = 0.8
     question_used = false
-    message = encounters[current_encounter]["name"] + " arrives. Read the need, then find the right shelf."
+    message = encounters[current_encounter]["name"] + " comes in and starts browsing."
     message_time = 6.0
+
+func _update_customer(delta: float) -> void:
+    if not customer_visible:
+        return
+    if customer_phase == "entering" or customer_phase == "browsing":
+        customer_position = customer_position.move_toward(customer_target, 150.0 * delta)
+        if customer_position.distance_to(customer_target) < 4.0:
+            customer_phase = "browsing"
+            customer_browse_time -= delta
+            if customer_browse_time <= 0.0:
+                customer_phase = "walking_to_register"
+                customer_target = REGISTER_RECT.get_center() + Vector2(0.0, 62.0)
+    elif customer_phase == "walking_to_register":
+        customer_position = customer_position.move_toward(customer_target, 180.0 * delta)
+        if customer_position.distance_to(customer_target) < 4.0:
+            customer_position = customer_target
+            customer_phase = "waiting"
 
 func _take_item(category: String) -> void:
     if customer_active == false:
@@ -160,6 +192,8 @@ func _serve_customer() -> void:
         message = encounter["issue"] + "\nWrong item served. The customer leaves unconvinced."
     held_item = ""
     customer_active = false
+    customer_visible = false
+    customer_phase = ""
     served_customers += 1
     var next_incident: Dictionary = incident_plan.get(served_customers - 1, {})
     if not next_incident.is_empty():
@@ -227,8 +261,21 @@ func _draw() -> void:
     draw_rect(BATHROOM_RECT, Color("4d4659"), true)
     draw_rect(BATHROOM_RECT, Color("aa9ac2"), false, 3.0)
     draw_string(ThemeDB.fallback_font, Vector2(700.0, 402.0), "BATHROOM", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("eee3ff"))
+    _draw_incident_clue_visuals()
     draw_circle(player_position, 18.0, Color("e6b875"))
     draw_circle(player_position, 18.0, Color("fff1d6"), false, 3.0)
+    if customer_visible:
+        var customer_category: String = encounters[current_encounter]["category"]
+        var customer_color := Color("8aa7c7")
+        if customer_category == "warm":
+            customer_color = Color("c98f6f")
+        elif customer_category == "odd":
+            customer_color = Color("ad8cc4")
+        draw_circle(customer_position, 16.0, customer_color)
+        draw_circle(customer_position, 16.0, Color("fff1d6"), false, 2.0)
+        draw_rect(Rect2(customer_position.x - 11.0, customer_position.y + 10.0, 22.0, 12.0), customer_color, true)
+        var customer_label: String = encounters[current_encounter]["name"]
+        draw_string(ThemeDB.fallback_font, customer_position + Vector2(-55.0, -24.0), customer_label, HORIZONTAL_ALIGNMENT_LEFT, 120, 11, Color("fff1d6"))
     draw_string(ThemeDB.fallback_font, Vector2(30.0, 42.0), "CLOSING TIME  •  OVERNIGHT SHIFT", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("f5d7a1"))
     draw_rect(Rect2(20.0, 478.0, 920.0, 44.0), Color("182130"), true)
     draw_string(ThemeDB.fallback_font, Vector2(36.0, 502.0), "CUSTOMERS: %02d/03    TRUST: %02d    SAFETY: %02d" % [served_customers, trust, safety_score], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
@@ -258,3 +305,37 @@ func _draw() -> void:
         var message_lines := message.split("\n")
         for line_index in range(min(message_lines.size(), 2)):
             draw_string(ThemeDB.fallback_font, Vector2(270.0, 422.0 + line_index * 20.0), message_lines[line_index], HORIZONTAL_ALIGNMENT_LEFT, 420, 16, Color("fff1d6"))
+
+func _draw_incident_clue_visuals() -> void:
+    if not incident_active or active_incident.is_empty():
+        return
+    match active_incident["kind"]:
+        "bathroom":
+            draw_circle(BATHROOM_RECT.get_center() + Vector2(0.0, 12.0), 13.0, Color("1b1724"))
+            draw_circle(BATHROOM_RECT.get_center() + Vector2(0.0, -5.0), 7.0, Color("d7b7cb"))
+            draw_arc(BATHROOM_RECT.get_center(), 32.0, 0.0, TAU, 32, Color("e08ab4"), 3.0)
+        "shoplifting":
+            var shelf_slot := Rect2(SHELF_RECTS["odd"].position + Vector2(25.0, 105.0), Vector2(50.0, 38.0))
+            draw_rect(shelf_slot, Color("25202c"), true)
+            draw_line(shelf_slot.position, shelf_slot.end, Color("f0b26e"), 3.0)
+            draw_line(Vector2(shelf_slot.end.x, shelf_slot.position.y), Vector2(shelf_slot.position.x, shelf_slot.end.y), Color("f0b26e"), 3.0)
+            draw_circle(SHELF_RECTS["odd"].get_center() + Vector2(0.0, 105.0), 7.0, Color("d18d6e"))
+        "coupon":
+            var coupon_rect := Rect2(736.0, 226.0, 56.0, 24.0)
+            draw_rect(coupon_rect, Color("d7e39a"), true)
+            draw_rect(coupon_rect, Color("27301d"), false, 2.0)
+            draw_line(Vector2(744.0, 234.0), Vector2(784.0, 234.0), Color("657647"), 2.0)
+            draw_line(Vector2(744.0, 241.0), Vector2(774.0, 241.0), Color("657647"), 2.0)
+        "spill":
+            _draw_ellipse(SHELF_RECTS["warm"].get_center() + Vector2(0.0, 122.0), Vector2(58.0, 14.0), Color("b9a16e"))
+            draw_circle(SHELF_RECTS["warm"].get_center() + Vector2(-45.0, 112.0), 7.0, Color("d9bf82"))
+        "parking_lot":
+            draw_rect(Rect2(820.0, 92.0, 54.0, 26.0), Color("53657e"), true)
+            draw_rect(Rect2(830.0, 86.0, 30.0, 12.0), Color("53657e"), true)
+            draw_circle(Vector2(832.0, 120.0), 6.0, Color("1b2028"))
+            draw_circle(Vector2(862.0, 120.0), 6.0, Color("1b2028"))
+
+func _draw_ellipse(center: Vector2, radius: Vector2, color: Color) -> void:
+    draw_set_transform(center, 0.0, Vector2(1.0, radius.y / radius.x))
+    draw_circle(Vector2.ZERO, radius.x, color)
+    draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
