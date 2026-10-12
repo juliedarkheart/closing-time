@@ -25,7 +25,9 @@ var customer_visible: bool = false
 var customer_position: Vector2 = Vector2.ZERO
 var customer_phase: String = ""
 var customer_target: Vector2 = Vector2.ZERO
+var customer_secondary_target: Vector2 = Vector2.ZERO
 var customer_browse_time: float = 0.0
+var customer_has_wandered: bool = false
 var held_item: String = ""
 var shelf_stock: Dictionary = {"cold": 2, "warm": 2, "odd": 2}
 var dawn_reached: bool = false
@@ -130,7 +132,9 @@ func _start_next_encounter() -> void:
     customer_phase = "entering"
     customer_position = Vector2(850.0, 430.0)
     customer_target = SHELF_RECTS[encounters[current_encounter]["category"]].get_center()
-    customer_browse_time = 0.8
+    customer_secondary_target = customer_target + encounters[current_encounter]["browse_offset"]
+    customer_browse_time = encounters[current_encounter]["browse_pause"]
+    customer_has_wandered = false
     question_used = false
     message = encounters[current_encounter]["name"] + " comes in and starts browsing."
     message_time = 6.0
@@ -138,14 +142,21 @@ func _start_next_encounter() -> void:
 func _update_customer(delta: float) -> void:
     if not customer_visible:
         return
-    if customer_phase == "entering" or customer_phase == "browsing":
+    if customer_phase == "entering":
         customer_position = customer_position.move_toward(customer_target, 150.0 * delta)
         if customer_position.distance_to(customer_target) < 4.0:
             customer_phase = "browsing"
-            customer_browse_time -= delta
-            if customer_browse_time <= 0.0:
-                customer_phase = "walking_to_register"
-                customer_target = REGISTER_RECT.get_center() + Vector2(0.0, 62.0)
+    elif customer_phase == "browsing":
+        customer_browse_time -= delta
+        if customer_browse_time <= 0.0:
+            customer_phase = "wandering"
+            customer_target = customer_secondary_target
+    elif customer_phase == "wandering":
+        customer_position = customer_position.move_toward(customer_target, 110.0 * delta)
+        if customer_position.distance_to(customer_target) < 4.0:
+            customer_has_wandered = true
+            customer_phase = "walking_to_register"
+            customer_target = REGISTER_RECT.get_center() + Vector2(0.0, 62.0)
     elif customer_phase == "walking_to_register":
         customer_position = customer_position.move_toward(customer_target, 180.0 * delta)
         if customer_position.distance_to(customer_target) < 4.0:
@@ -274,6 +285,9 @@ func _draw() -> void:
         draw_circle(customer_position, 16.0, customer_color)
         draw_circle(customer_position, 16.0, Color("fff1d6"), false, 2.0)
         draw_rect(Rect2(customer_position.x - 11.0, customer_position.y + 10.0, 22.0, 12.0), customer_color, true)
+        if customer_phase == "browsing" or customer_phase == "wandering":
+            draw_rect(Rect2(customer_position.x + 12.0, customer_position.y + 5.0, 9.0, 10.0), Color("e5c68c"), true)
+            draw_line(customer_position + Vector2(14.0, 5.0), customer_position + Vector2(18.0, 1.0), Color("e5c68c"), 2.0)
         var customer_label: String = encounters[current_encounter]["name"]
         draw_string(ThemeDB.fallback_font, customer_position + Vector2(-55.0, -24.0), customer_label, HORIZONTAL_ALIGNMENT_LEFT, 120, 11, Color("fff1d6"))
     draw_string(ThemeDB.fallback_font, Vector2(30.0, 42.0), "CLOSING TIME  •  OVERNIGHT SHIFT", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("f5d7a1"))

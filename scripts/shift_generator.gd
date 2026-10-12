@@ -43,9 +43,13 @@ func _init(seed_value: int = 0) -> void:
 func generate_shift(customer_count: int) -> Dictionary:
     var encounters: Array[Dictionary] = []
     var available := customer_blueprints.duplicate(true)
+    var browse_offsets: Array[Vector2] = [Vector2(-34.0, 48.0), Vector2(36.0, 42.0), Vector2(-28.0, -52.0), Vector2(30.0, -46.0)]
     for index in range(min(customer_count, available.size())):
         var selected := randomizer.randi_range(0, available.size() - 1)
-        encounters.append(available[selected])
+        var encounter: Dictionary = available[selected].duplicate(true)
+        encounter["browse_offset"] = browse_offsets[randomizer.randi_range(0, browse_offsets.size() - 1)]
+        encounter["browse_pause"] = randomizer.randf_range(0.6, 1.2)
+        encounters.append(encounter)
         available.remove_at(selected)
 
     incident_engine.prepare_shift(encounters.size())
