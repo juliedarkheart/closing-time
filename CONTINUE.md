@@ -2,28 +2,27 @@
 
 ## Current state
 
-- Repository skeleton created locally.
-- Godot 4 project metadata exists at `project.godot`.
-- First scene exists at `scenes/main.tscn`.
-- Graybox script exists at `scripts/main.gd`.
-- Docs define the concept, MVP, systems, technical preferences, and scope guardrails.
-- GitHub remote creation/push is the next operation.
+- Repository: `https://github.com/juliedarkheart/closing-time`
+- Branch: `main`, clean and synced
+- HMGS tracking bridge committed at `54d5379`.
+- Godot 4.6.3 installed at `~/.local/bin/godot`.
+- Three-customer graybox loop committed at `e9c5fee`.
 
 ## Working
 
-- File-level project structure is complete.
-- The graybox implements movement, register interaction, cash, stock, customer count, and feedback text.
+- Headless Godot editor import passed.
+- Headless project run passed for 8 seconds with no reported errors.
+- Graybox now includes movement, register interaction, three encounters, two choices per encounter, state changes, and a dawn result.
 
 ## Not verified
 
-- Godot runtime: Godot is not installed on the current host.
-- Scene/script parse by Godot.
-- Actual LimeZu asset import.
+- Manual keyboard movement and register interaction.
+- Blind playtest.
+- Final art/audio and LimeZu import.
 
 ## Next actions
 
-1. Verify the pushed GitHub repository URL and default branch.
-2. Install or locate Godot 4 on the development machine.
-3. Run the graybox and fix any Godot parse/input errors.
-4. Add the first three customer encounter states.
-5. Keep the first milestone to an 8–10 minute graybox segment.
+1. Run the project interactively and test movement, `E`, `1`, and `2`.
+2. Fix any input or presentation issues found manually.
+3. Run the first blind playtest and complete the seeded report.
+4. Only then start the LimeZu art pass.

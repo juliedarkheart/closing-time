@@ -6,17 +6,21 @@ A tiny cozy mystery game about running one strange overnight shift at a roadside
 
 ## Current state
 
-Week 1 graybox slice. The project currently contains one Godot 4 scene with:
+The first graybox slice is implemented in Godot 4. It currently contains one scene with:
 
 - WASD/arrow movement
 - A compact shop layout
 - A register interaction using `E`
-- Cash, stock, and served-customer feedback
-- A first mystery-flavored customer message
+- Three deterministic customer encounters
+- Two choices per encounter using `1` and `2`
+- Cash, stock, trust, customer count, and mystery-clue feedback
+- A dawn result after the third customer
 
 ## Run
 
-Open this folder in Godot 4 and run the project. Godot is not currently installed on the development host, so runtime verification is pending.
+Open this folder in Godot 4 and run the project. Godot 4.6.3 is installed at `~/.local/bin/godot` on the development host. Headless editor import and an 8-second headless project run passed at commit `e9c5fee`.
+
+Manual input testing is still pending.
 
 ## Scope guardrails
 
