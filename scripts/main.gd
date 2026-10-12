@@ -1,33 +1,57 @@
 extends Node2D
-## First playable slice for Closing Time.
-## Move with WASD or arrows. Press E at the register, then 1 or 2.
+## First playable operations slice for Closing Time.
+## Move with WASD/arrows. E interacts with shelves/register. Q asks a customer a question.
 
 const PLAYER_SPEED: float = 220.0
 const SHOP_RECT := Rect2(80.0, 70.0, 800.0, 400.0)
 const REGISTER_RECT := Rect2(690.0, 165.0, 120.0, 90.0)
+const SHELF_RECTS := {
+    "cold": Rect2(110.0, 100.0, 180.0, 270.0),
+    "warm": Rect2(330.0, 100.0, 180.0, 270.0),
+    "odd": Rect2(550.0, 100.0, 100.0, 270.0),
+}
+const FRIDGE_PATH := "res://licensed_assets/limezu/modern_interiors/extracted/moderninteriors-win/3_Animated_objects/32x32/spritesheets/animated_fridge_white_32x32.png"
+const CHECKOUT_PATH := "res://licensed_assets/limezu/modern_interiors/extracted/moderninteriors-win/3_Animated_objects/32x32/spritesheets/animated_grocery_store_checkout_roller_32x32.png"
 
 var player_position: Vector2 = Vector2(460.0, 360.0)
 var cash: int = 24
-var stock: int = 6
 var trust: int = 0
 var served_customers: int = 0
 var current_encounter: int = -1
-var awaiting_choice: bool = false
+var customer_active: bool = false
+var question_used: bool = false
+var held_item: String = ""
+var shelf_stock: Dictionary = {"cold": 2, "warm": 2, "odd": 2}
 var dawn_reached: bool = false
-var message: String = "The night shift begins. Check the register."
+var message: String = "The night shift begins. Stock the shelves, then check the register."
 var message_time: float = 0.0
+var encounters: Array[Dictionary] = []
+var randomizer := RandomNumberGenerator.new()
+var fridge_sheet: Texture2D
+var checkout_sheet: Texture2D
 
-var encounters: Array[Dictionary] = [
-    {"name": "The soaked traveler", "clue": "They keep looking at the road behind you.", "request": "They ask for a flashlight.", "one": "Sell the flashlight", "two": "Ask where they are going"},
-    {"name": "The tired parent", "clue": "The child in the car wears a hospital bracelet.", "request": "They ask for something warm.", "one": "Offer soup", "two": "Point them toward the clinic"},
-    {"name": "The last customer", "clue": "Their receipt already has tomorrow's date on it.", "request": "They ask if you saw anyone come through.", "one": "Tell the truth", "two": "Say nothing"}
+var encounter_pool: Array[Dictionary] = [
+    {"name": "The soaked traveler", "category": "cold", "need": "They need a flashlight to find a lost bag.", "issue": "They keep looking at the road behind you.", "question": "Ask what they saw on the road."},
+    {"name": "The tired parent", "category": "warm", "need": "They need something warm for the child in the car.", "issue": "The child wears a hospital bracelet.", "question": "Ask if they need directions."},
+    {"name": "The last customer", "category": "odd", "need": "They need a roll of quarters for the payphone.", "issue": "Their receipt already has tomorrow's date.", "question": "Ask why they are out this late."},
+    {"name": "The stranded mechanic", "category": "odd", "need": "They need tape and a dry place to fix a hose.", "issue": "Their work van has no license plate.", "question": "Ask where the van came from."},
+    {"name": "The midnight nurse", "category": "warm", "need": "They need coffee before driving to the next town.", "issue": "They have hospital ink on both hands.", "question": "Ask which way the hospital is."},
+    {"name": "The silent teenager", "category": "cold", "need": "They need water and somewhere bright to wait.", "issue": "They keep checking a phone with no signal.", "question": "Ask who they are waiting for."}
 ]
 
 func _ready() -> void:
+    fridge_sheet = _load_local_texture(FRIDGE_PATH)
+    checkout_sheet = _load_local_texture(CHECKOUT_PATH)
+    randomizer.seed = 20261012
+    var available := encounter_pool.duplicate()
+    for index in range(3):
+        var selected := randomizer.randi_range(0, available.size() - 1)
+        encounters.append(available[selected])
+        available.remove_at(selected)
     queue_redraw()
 
 func _process(delta: float) -> void:
-    if not awaiting_choice and not dawn_reached:
+    if not dawn_reached:
         var direction := Vector2.ZERO
         if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
             direction.x -= 1.0
@@ -48,77 +72,127 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
     if not event is InputEventKey or not event.pressed or event.echo:
         return
-    if awaiting_choice:
-        if event.keycode == KEY_1 or event.keycode == KEY_KP_1 or event.physical_keycode == KEY_1:
-            _resolve_choice(1)
-        elif event.keycode == KEY_2 or event.keycode == KEY_KP_2 or event.physical_keycode == KEY_2:
-            _resolve_choice(2)
+    if event.keycode == KEY_Q or event.physical_keycode == KEY_Q:
+        _ask_question()
+    elif event.keycode == KEY_E or event.physical_keycode == KEY_E:
+        _interact()
+
+func _interact() -> void:
+    if customer_active and REGISTER_RECT.grow(28.0).has_point(player_position):
+        _serve_customer()
         return
-    if event.keycode == KEY_E or event.physical_keycode == KEY_E:
-        if REGISTER_RECT.grow(28.0).has_point(player_position):
-            _start_next_encounter()
+    if not customer_active and REGISTER_RECT.grow(28.0).has_point(player_position):
+        _start_next_encounter()
+        return
+    for category in SHELF_RECTS:
+        if SHELF_RECTS[category].grow(20.0).has_point(player_position):
+            _take_item(category)
+            return
 
 func _start_next_encounter() -> void:
     if served_customers >= encounters.size():
         dawn_reached = true
-        message = "Dawn arrives. The shop is quiet again."
+        message = "Dawn arrives. Sales: $%02d. Trust: %02d. The morning crew will find your notes." % [cash, trust]
         message_time = 8.0
         return
+    if held_item != "":
+        message = "Your hands are full. Put the item back or serve the waiting customer."
+        message_time = 4.0
+        return
     current_encounter = served_customers
-    awaiting_choice = true
-    message = encounters[current_encounter]["name"] + ": " + encounters[current_encounter]["request"]
-    message_time = 8.0
+    customer_active = true
+    question_used = false
+    message = encounters[current_encounter]["name"] + " arrives. Read the need, then find the right shelf."
+    message_time = 6.0
 
-func _resolve_choice(choice: int) -> void:
+func _take_item(category: String) -> void:
+    if customer_active == false:
+        message = "No customer is waiting. Stock check first, then call someone in."
+    elif held_item != "":
+        message = "You are already carrying the %s item." % held_item
+    elif int(shelf_stock[category]) <= 0:
+        message = "The %s shelf is empty. The customer will have to wait." % category
+    else:
+        shelf_stock[category] -= 1
+        held_item = category
+        message = "You take one %s item. Bring it back to the register." % category
+    message_time = 4.0
+
+func _ask_question() -> void:
+    if not customer_active:
+        message = "There is nobody to ask."
+    elif not REGISTER_RECT.grow(34.0).has_point(player_position):
+        message = "Ask the customer at the register."
+    elif question_used:
+        message = "You already asked your one useful question."
+    else:
+        question_used = true
+        trust += 1
+        message = encounters[current_encounter]["question"] + "\nThey confirm they need something from the %s shelf." % encounters[current_encounter]["category"]
+    message_time = 5.0
+
+func _serve_customer() -> void:
     var encounter: Dictionary = encounters[current_encounter]
-    if stock <= 0:
-        message = "You have nothing left to offer. The customer leaves."
-    elif choice == 1:
-        stock -= 1
+    if held_item == "":
+        trust -= 1
+        message = "You have nothing in your hands. The customer leaves disappointed."
+    elif held_item == encounter["category"]:
         cash += 4
         trust += 1
-        message = encounter["clue"] + "\nYou chose: " + encounter["one"] + "."
+        message = encounter["issue"] + "\nCorrect item served. They leave $4 and a clue behind."
     else:
-        stock -= 1
         trust -= 1
-        message = encounter["clue"] + "\nYou chose: " + encounter["two"] + "."
+        message = encounter["issue"] + "\nWrong item served. The customer leaves unconvinced."
+    held_item = ""
+    customer_active = false
     served_customers += 1
-    awaiting_choice = false
     message_time = 6.0
+
+func _load_local_texture(resource_path: String) -> Texture2D:
+    var image := Image.new()
+    var local_path := ProjectSettings.globalize_path(resource_path)
+    if image.load(local_path) != OK:
+        return null
+    return ImageTexture.create_from_image(image)
 
 func _draw() -> void:
     draw_rect(Rect2(0.0, 0.0, 960.0, 540.0), Color("101622"))
     draw_rect(Rect2(20.0, 14.0, 920.0, 42.0), Color("182130"), true)
     draw_rect(SHOP_RECT, Color("2b3545"), true)
     draw_rect(SHOP_RECT, Color("91a4bd"), false, 4.0)
-    draw_rect(Rect2(110.0, 100.0, 180.0, 270.0), Color("4a5c68"), true)
-    draw_rect(Rect2(110.0, 100.0, 180.0, 270.0), Color("78909c"), false, 3.0)
-    draw_rect(Rect2(330.0, 100.0, 180.0, 270.0), Color("566451"), true)
-    draw_rect(Rect2(330.0, 100.0, 180.0, 270.0), Color("91a87b"), false, 3.0)
-    draw_rect(Rect2(550.0, 100.0, 100.0, 270.0), Color("66524b"), true)
-    draw_rect(Rect2(550.0, 100.0, 100.0, 270.0), Color("b88c75"), false, 3.0)
-    draw_string(ThemeDB.fallback_font, Vector2(126.0, 126.0), "COLD", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("dbe9ef"))
-    draw_string(ThemeDB.fallback_font, Vector2(346.0, 126.0), "WARM", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("e7f0cf"))
-    draw_string(ThemeDB.fallback_font, Vector2(566.0, 126.0), "ODD", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("f3d5c7"))
+    draw_rect(SHELF_RECTS["cold"], Color("4a5c68"), true)
+    draw_rect(SHELF_RECTS["cold"], Color("78909c"), false, 3.0)
+    draw_rect(SHELF_RECTS["warm"], Color("566451"), true)
+    draw_rect(SHELF_RECTS["warm"], Color("91a87b"), false, 3.0)
+    draw_rect(SHELF_RECTS["odd"], Color("66524b"), true)
+    draw_rect(SHELF_RECTS["odd"], Color("b88c75"), false, 3.0)
+    if fridge_sheet != null:
+        draw_texture_rect_region(fridge_sheet, Rect2(150.0, 165.0, 100.0, 180.0), Rect2(0.0, 0.0, 32.0, 32.0))
+    if checkout_sheet != null:
+        draw_texture_rect_region(checkout_sheet, Rect2(702.0, 176.0, 96.0, 64.0), Rect2(0.0, 0.0, 32.0, 32.0))
+    draw_string(ThemeDB.fallback_font, Vector2(126.0, 126.0), "COLD  %02d" % shelf_stock["cold"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("dbe9ef"))
+    draw_string(ThemeDB.fallback_font, Vector2(346.0, 126.0), "WARM  %02d" % shelf_stock["warm"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("e7f0cf"))
+    draw_string(ThemeDB.fallback_font, Vector2(566.0, 126.0), "ODD  %02d" % shelf_stock["odd"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("f3d5c7"))
     draw_rect(REGISTER_RECT, Color("b8815a"), true)
     draw_rect(REGISTER_RECT, Color("e8c18d"), false, 3.0)
     draw_string(ThemeDB.fallback_font, Vector2(708.0, 212.0), "REGISTER", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("fff1d6"))
     draw_circle(player_position, 18.0, Color("e6b875"))
     draw_circle(player_position, 18.0, Color("fff1d6"), false, 3.0)
-    draw_string(ThemeDB.fallback_font, Vector2(30.0, 42.0), "CLOSING TIME  •  GRAYBOX SHIFT", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("f5d7a1"))
+    draw_string(ThemeDB.fallback_font, Vector2(30.0, 42.0), "CLOSING TIME  •  OVERNIGHT SHIFT", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("f5d7a1"))
     draw_rect(Rect2(20.0, 478.0, 920.0, 44.0), Color("182130"), true)
     draw_string(ThemeDB.fallback_font, Vector2(36.0, 502.0), "CUSTOMERS: %02d/03    TRUST: %02d" % [served_customers, trust], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
-    draw_string(ThemeDB.fallback_font, Vector2(430.0, 502.0), "WASD / ARROWS: move     E: register     1 / 2: choose", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("c4cfdd"))
+    draw_string(ThemeDB.fallback_font, Vector2(430.0, 502.0), "WASD: move   E: interact   Q: ask", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("c4cfdd"))
     draw_rect(Rect2(650.0, 72.0, 210.0, 40.0), Color("182130"), true)
-    draw_string(ThemeDB.fallback_font, Vector2(668.0, 98.0), "CASH: $%02d    STOCK: %02d" % [cash, stock], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
-    if awaiting_choice:
-        draw_rect(Rect2(240.0, 338.0, 480.0, 126.0), Color("101622"), true)
-        draw_rect(Rect2(240.0, 338.0, 480.0, 126.0), Color("e8c18d"), false, 2.0)
-        draw_string(ThemeDB.fallback_font, Vector2(260.0, 362.0), encounters[current_encounter]["name"], HORIZONTAL_ALIGNMENT_LEFT, 440, 18, Color("fff1d6"))
-        draw_string(ThemeDB.fallback_font, Vector2(260.0, 384.0), encounters[current_encounter]["request"], HORIZONTAL_ALIGNMENT_LEFT, 440, 15, Color("dce8f4"))
-        draw_string(ThemeDB.fallback_font, Vector2(260.0, 408.0), encounters[current_encounter]["clue"], HORIZONTAL_ALIGNMENT_LEFT, 440, 15, Color("f5d7a1"))
-        draw_string(ThemeDB.fallback_font, Vector2(260.0, 432.0), "[1] " + encounters[current_encounter]["one"], HORIZONTAL_ALIGNMENT_LEFT, 440, 15, Color("dce8f4"))
-        draw_string(ThemeDB.fallback_font, Vector2(260.0, 454.0), "[2] " + encounters[current_encounter]["two"], HORIZONTAL_ALIGNMENT_LEFT, 440, 15, Color("dce8f4"))
+    draw_string(ThemeDB.fallback_font, Vector2(668.0, 98.0), "CASH: $%02d    HANDS: %s" % [cash, held_item if held_item != "" else "empty"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("dce8f4"))
+    if customer_active:
+        var encounter: Dictionary = encounters[current_encounter]
+        draw_rect(Rect2(210.0, 316.0, 540.0, 148.0), Color("101622"), true)
+        draw_rect(Rect2(210.0, 316.0, 540.0, 148.0), Color("e8c18d"), false, 2.0)
+        draw_string(ThemeDB.fallback_font, Vector2(230.0, 340.0), encounter["name"], HORIZONTAL_ALIGNMENT_LEFT, 500, 18, Color("fff1d6"))
+        draw_string(ThemeDB.fallback_font, Vector2(230.0, 364.0), encounter["need"], HORIZONTAL_ALIGNMENT_LEFT, 500, 15, Color("dce8f4"))
+        draw_string(ThemeDB.fallback_font, Vector2(230.0, 388.0), encounter["issue"], HORIZONTAL_ALIGNMENT_LEFT, 500, 15, Color("f5d7a1"))
+        draw_string(ThemeDB.fallback_font, Vector2(230.0, 414.0), "Q: " + encounter["question"], HORIZONTAL_ALIGNMENT_LEFT, 500, 14, Color("c4cfdd"))
+        draw_string(ThemeDB.fallback_font, Vector2(230.0, 442.0), "Find the %s shelf, take an item, then return to the register." % encounter["category"], HORIZONTAL_ALIGNMENT_LEFT, 500, 15, Color("fff1d6"))
     elif message_time > 0.0 or served_customers == 0 or dawn_reached:
         draw_rect(Rect2(250.0, 400.0, 460.0, 62.0), Color("101622"), true)
         draw_rect(Rect2(250.0, 400.0, 460.0, 62.0), Color("e8c18d"), false, 2.0)

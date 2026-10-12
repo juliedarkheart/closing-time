@@ -7,15 +7,16 @@
 
 ## Description
 
-Prove the smallest complete Closing Time loop in Godot: move through the shop, serve customers, make meaningful choices, change cash and stock, discover one mystery clue, and reach a dawn summary.
+Prove the smallest complete Closing Time loop in Godot: stock and face shelves, call odd overnight customers, ask useful questions, retrieve the requested item, serve them at the register, handle consequences, and reach a dawn handoff.
 
 ## Systems included
 
-- Player movement and interaction
-- Customer encounter sequence
-- Inventory, cash, and stock feedback
-- Choice/consequence state
-- Dawn summary and ending
+- Player movement and shelf/register interaction
+- Shelf stock and held-item state
+- Randomized overnight customer needs and issues
+- Useful customer question
+- Customer service and consequences
+- Dawn handoff summary
 
 ## Dependencies
 
@@ -35,7 +36,7 @@ Prove the smallest complete Closing Time loop in Godot: move through the shop, s
 
 ## Interface notes
 
-The player uses WASD/arrow keys to move and `E` to interact. The first slice must communicate cash, stock, customer count, current prompt, and the dawn result without requiring external instructions.
+The player uses WASD/arrow keys to move, `E` to take/serve/call, and `Q` to ask a customer a useful question. The first slice must communicate shelf stock, held item, cash, customer count, current need/issue, and the dawn handoff without external instructions.
 
 ## Out of scope
 
