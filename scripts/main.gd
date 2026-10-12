@@ -28,6 +28,7 @@ var incident_active: bool = false
 var incident_kind: String = ""
 var incident_resolved: bool = false
 var shoplifting_resolved: bool = false
+var coupon_resolved: bool = false
 var safety_score: int = 0
 var handoff_notes: int = 0
 var message: String = "The night shift begins. Stock the shelves, then check the register."
@@ -90,6 +91,8 @@ func _interact() -> void:
             _resolve_bathroom_incident()
         elif incident_kind == "shoplifting" and SHELF_RECTS["odd"].grow(28.0).has_point(player_position):
             _resolve_shoplifting_incident()
+        elif incident_kind == "coupon" and REGISTER_RECT.grow(28.0).has_point(player_position):
+            _resolve_coupon_incident()
         else:
             message = "The active incident needs attention first. Do not chase trouble across the whole store."
             message_time = 4.0
@@ -177,6 +180,11 @@ func _serve_customer() -> void:
         shelf_stock["odd"] = max(0, int(shelf_stock["odd"]) - 1)
         message = "A customer pockets something from the odd shelf and heads for the door."
         message_time = 6.0
+    elif served_customers == 3 and not coupon_resolved:
+        incident_active = true
+        incident_kind = "coupon"
+        message = "The final customer presents a coupon from a store that closed seventeen years ago."
+        message_time = 6.0
     else:
         message_time = 6.0
 
@@ -196,6 +204,14 @@ func _resolve_shoplifting_incident() -> void:
     safety_score += 1
     handoff_notes += 1
     message = "You do not chase them. You note the description, call the manager, and log one missing item."
+    message_time = 6.0
+
+func _resolve_coupon_incident() -> void:
+    incident_active = false
+    incident_kind = ""
+    coupon_resolved = true
+    handoff_notes += 1
+    message = "You refuse the coupon, write down the register discrepancy, and discover the date is tomorrow."
     message_time = 6.0
 
 func _load_local_texture(resource_path: String) -> Texture2D:
@@ -251,6 +267,13 @@ func _draw() -> void:
         draw_string(ThemeDB.fallback_font, Vector2(175.0, 358.0), "Someone took an item from the odd shelf.", HORIZONTAL_ALIGNMENT_LEFT, 600, 16, Color("fff0dc"))
         draw_string(ThemeDB.fallback_font, Vector2(175.0, 386.0), "Go to the shelf, document it, and let the manager handle the chase.", HORIZONTAL_ALIGNMENT_LEFT, 600, 15, Color("f1d1ad"))
         draw_string(ThemeDB.fallback_font, Vector2(175.0, 418.0), "The camera is pointed at the ceiling again.", HORIZONTAL_ALIGNMENT_LEFT, 600, 14, Color("dfb58c"))
+    elif incident_active and incident_kind == "coupon":
+        draw_rect(Rect2(150.0, 300.0, 660.0, 150.0), Color("263021"), true)
+        draw_rect(Rect2(150.0, 300.0, 660.0, 150.0), Color("c4d27f"), false, 2.0)
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 330.0), "NIGHT-SHIFT INCIDENT", HORIZONTAL_ALIGNMENT_LEFT, 600, 20, Color("eff4bd"))
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 358.0), "The coupon is older than the employee handbook.", HORIZONTAL_ALIGNMENT_LEFT, 600, 16, Color("f4f7dc"))
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 386.0), "Return to the register, refuse it politely, and log the discrepancy.", HORIZONTAL_ALIGNMENT_LEFT, 600, 15, Color("dce6b2"))
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 418.0), "The barcode scans as: PLEASE SEE MANAGER.", HORIZONTAL_ALIGNMENT_LEFT, 600, 14, Color("c4d39a"))
     elif customer_active:
         var encounter: Dictionary = encounters[current_encounter]
         draw_rect(Rect2(210.0, 316.0, 540.0, 148.0), Color("101622"), true)
