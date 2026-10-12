@@ -4,3 +4,4 @@
 .DS_Store
 assets/third_party/limezu/*
 !assets/third_party/limezu/.gitkeep
+licensed_assets/
