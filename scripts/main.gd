@@ -43,6 +43,8 @@ var randomizer := RandomNumberGenerator.new()
 var shift_generator: ShiftGenerator
 var shift_data: Dictionary = {}
 var incident_plan: Dictionary = {}
+var opening_tasks: Array[Dictionary] = []
+var completed_opening_tasks: int = 0
 var fridge_sheet: Texture2D
 var checkout_sheet: Texture2D
 
@@ -58,6 +60,7 @@ func _ready() -> void:
     encounters = shift_data["encounters"]
     shelf_stock = shift_data["starting_stock"]
     incident_plan = shift_data["incidents"]
+    opening_tasks = shift_data["opening_tasks"]
     message = "The night shift begins. %s" % shift_data["condition"]
     queue_redraw()
 
@@ -126,6 +129,10 @@ func _start_next_encounter() -> void:
         message = "Your hands are full. Put the item back or serve the waiting customer."
         message_time = 4.0
         return
+    if completed_opening_tasks < opening_tasks.size():
+        message = "Finish the highlighted opening task before calling a customer."
+        message_time = 4.0
+        return
     current_encounter = served_customers
     customer_active = true
     customer_visible = true
@@ -165,7 +172,7 @@ func _update_customer(delta: float) -> void:
 
 func _take_item(category: String) -> void:
     if customer_active == false:
-        message = "No customer is waiting. Stock check first, then call someone in."
+        _complete_opening_task(category)
     elif held_item != "":
         message = "You are already carrying the %s item." % held_item
     elif int(shelf_stock[category]) <= 0:
@@ -175,6 +182,18 @@ func _take_item(category: String) -> void:
         held_item = category
         message = "You take one %s item. Bring it back to the register." % category
     message_time = 4.0
+
+func _complete_opening_task(category: String) -> void:
+    for task in opening_tasks:
+        if not task["completed"]:
+            if task["category"] == category:
+                task["completed"] = true
+                completed_opening_tasks += 1
+                message = task["text"] + " Opening task complete."
+            else:
+                message = "That is not the highlighted opening task."
+            return
+    message = "The opening tasks are complete. Call the next customer."
 
 func _ask_question() -> void:
     if not customer_active:
@@ -266,6 +285,10 @@ func _draw() -> void:
     draw_string(ThemeDB.fallback_font, Vector2(126.0, 126.0), "COLD  %02d" % shelf_stock["cold"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("dbe9ef"))
     draw_string(ThemeDB.fallback_font, Vector2(346.0, 126.0), "WARM  %02d" % shelf_stock["warm"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("e7f0cf"))
     draw_string(ThemeDB.fallback_font, Vector2(566.0, 126.0), "ODD  %02d" % shelf_stock["odd"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("f3d5c7"))
+    if completed_opening_tasks < opening_tasks.size():
+        var opening_category: String = opening_tasks[completed_opening_tasks]["category"]
+        draw_rect(SHELF_RECTS[opening_category].grow(8.0), Color("f5d27d"), false, 4.0)
+        draw_string(ThemeDB.fallback_font, SHELF_RECTS[opening_category].position + Vector2(0.0, -12.0), "OPENING TASK", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("f5d27d"))
     draw_rect(REGISTER_RECT, Color("b8815a"), true)
     draw_rect(REGISTER_RECT, Color("e8c18d"), false, 3.0)
     draw_string(ThemeDB.fallback_font, Vector2(708.0, 212.0), "REGISTER", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("fff1d6"))
@@ -292,7 +315,7 @@ func _draw() -> void:
         draw_string(ThemeDB.fallback_font, customer_position + Vector2(-55.0, -24.0), customer_label, HORIZONTAL_ALIGNMENT_LEFT, 120, 11, Color("fff1d6"))
     draw_string(ThemeDB.fallback_font, Vector2(30.0, 42.0), "CLOSING TIME  •  OVERNIGHT SHIFT", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("f5d7a1"))
     draw_rect(Rect2(20.0, 478.0, 920.0, 44.0), Color("182130"), true)
-    draw_string(ThemeDB.fallback_font, Vector2(36.0, 502.0), "CUSTOMERS: %02d/03    TRUST: %02d    SAFETY: %02d" % [served_customers, trust, safety_score], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
+    draw_string(ThemeDB.fallback_font, Vector2(36.0, 502.0), "OPENING: %02d/%02d    CUSTOMERS: %02d/03    TRUST: %02d    SAFETY: %02d" % [completed_opening_tasks, opening_tasks.size(), served_customers, trust, safety_score], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("dce8f4"))
     draw_string(ThemeDB.fallback_font, Vector2(430.0, 502.0), "WASD: move   E: interact   Q: ask", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("c4cfdd"))
     draw_rect(Rect2(650.0, 72.0, 210.0, 40.0), Color("182130"), true)
     draw_string(ThemeDB.fallback_font, Vector2(668.0, 98.0), "CASH: $%02d    HANDS: %s" % [cash, held_item if held_item != "" else "empty"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("dce8f4"))

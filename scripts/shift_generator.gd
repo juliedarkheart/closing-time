@@ -31,6 +31,12 @@ var shift_conditions: Array[String] = [
     "The store radio only gets one station tonight."
 ]
 
+var opening_task_templates: Array[Dictionary] = [
+    {"category": "cold", "text": "Face the cooler before the first rush."},
+    {"category": "warm", "text": "Wipe the warm station before it becomes a problem."},
+    {"category": "odd", "text": "Check the odd shelf for anything out of place."}
+]
+
 
 func _init(seed_value: int = 0) -> void:
     if seed_value == 0:
@@ -55,6 +61,14 @@ func generate_shift(customer_count: int) -> Dictionary:
     incident_engine.prepare_shift(encounters.size())
     var mystery_index := randomizer.randi_range(0, mystery_threads.size() - 1)
     var condition_index := randomizer.randi_range(0, shift_conditions.size() - 1)
+    var opening_tasks: Array[Dictionary] = []
+    var available_tasks: Array[Dictionary] = opening_task_templates.duplicate(true)
+    for task_index in range(2):
+        var selected_task := randomizer.randi_range(0, available_tasks.size() - 1)
+        var task: Dictionary = available_tasks[selected_task].duplicate(true)
+        task["completed"] = false
+        opening_tasks.append(task)
+        available_tasks.remove_at(selected_task)
 
     var starting_stock := {
         "cold": randomizer.randi_range(2, 3),
@@ -67,5 +81,6 @@ func generate_shift(customer_count: int) -> Dictionary:
         "incidents": incident_engine.scheduled_incidents.duplicate(true),
         "starting_stock": starting_stock,
         "mystery": mystery_threads[mystery_index],
-        "condition": shift_conditions[condition_index]
+        "condition": shift_conditions[condition_index],
+        "opening_tasks": opening_tasks
     }
