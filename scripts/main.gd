@@ -5,6 +5,7 @@ extends Node2D
 const PLAYER_SPEED: float = 220.0
 const SHOP_RECT := Rect2(80.0, 70.0, 800.0, 400.0)
 const REGISTER_RECT := Rect2(690.0, 165.0, 120.0, 90.0)
+const BATHROOM_RECT := Rect2(690.0, 355.0, 120.0, 90.0)
 const SHELF_RECTS := {
     "cold": Rect2(110.0, 100.0, 180.0, 270.0),
     "warm": Rect2(330.0, 100.0, 180.0, 270.0),
@@ -23,6 +24,10 @@ var question_used: bool = false
 var held_item: String = ""
 var shelf_stock: Dictionary = {"cold": 2, "warm": 2, "odd": 2}
 var dawn_reached: bool = false
+var incident_active: bool = false
+var incident_resolved: bool = false
+var safety_score: int = 0
+var handoff_notes: int = 0
 var message: String = "The night shift begins. Stock the shelves, then check the register."
 var message_time: float = 0.0
 var encounters: Array[Dictionary] = []
@@ -78,6 +83,13 @@ func _unhandled_input(event: InputEvent) -> void:
         _interact()
 
 func _interact() -> void:
+    if incident_active:
+        if BATHROOM_RECT.grow(28.0).has_point(player_position):
+            _resolve_bathroom_incident()
+        else:
+            message = "The bathroom needs attention first. Keep customers clear and check it safely."
+            message_time = 4.0
+        return
     if customer_active and REGISTER_RECT.grow(28.0).has_point(player_position):
         _serve_customer()
         return
@@ -90,9 +102,13 @@ func _interact() -> void:
             return
 
 func _start_next_encounter() -> void:
+    if incident_active:
+        message = "You cannot call the next customer while the bathroom incident is unresolved."
+        message_time = 4.0
+        return
     if served_customers >= encounters.size():
         dawn_reached = true
-        message = "Dawn arrives. Sales: $%02d. Trust: %02d. The morning crew will find your notes." % [cash, trust]
+        message = "Dawn arrives. Sales: $%02d. Trust: %02d. Safety: %02d. Handoff notes: %02d." % [cash, trust, safety_score, handoff_notes]
         message_time = 8.0
         return
     if held_item != "":
@@ -146,6 +162,19 @@ func _serve_customer() -> void:
     held_item = ""
     customer_active = false
     served_customers += 1
+    if served_customers == 1 and not incident_resolved:
+        incident_active = true
+        message = "A customer is unresponsive in the bathroom. Keep the area clear and check safely."
+        message_time = 6.0
+    else:
+        message_time = 6.0
+
+func _resolve_bathroom_incident() -> void:
+    incident_active = false
+    incident_resolved = true
+    safety_score += 1
+    handoff_notes += 1
+    message = "You check from the doorway, call the manager, and keep customers away. Incident logged."
     message_time = 6.0
 
 func _load_local_texture(resource_path: String) -> Texture2D:
@@ -176,15 +205,25 @@ func _draw() -> void:
     draw_rect(REGISTER_RECT, Color("b8815a"), true)
     draw_rect(REGISTER_RECT, Color("e8c18d"), false, 3.0)
     draw_string(ThemeDB.fallback_font, Vector2(708.0, 212.0), "REGISTER", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("fff1d6"))
+    draw_rect(BATHROOM_RECT, Color("4d4659"), true)
+    draw_rect(BATHROOM_RECT, Color("aa9ac2"), false, 3.0)
+    draw_string(ThemeDB.fallback_font, Vector2(700.0, 402.0), "BATHROOM", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("eee3ff"))
     draw_circle(player_position, 18.0, Color("e6b875"))
     draw_circle(player_position, 18.0, Color("fff1d6"), false, 3.0)
     draw_string(ThemeDB.fallback_font, Vector2(30.0, 42.0), "CLOSING TIME  •  OVERNIGHT SHIFT", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("f5d7a1"))
     draw_rect(Rect2(20.0, 478.0, 920.0, 44.0), Color("182130"), true)
-    draw_string(ThemeDB.fallback_font, Vector2(36.0, 502.0), "CUSTOMERS: %02d/03    TRUST: %02d" % [served_customers, trust], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
+    draw_string(ThemeDB.fallback_font, Vector2(36.0, 502.0), "CUSTOMERS: %02d/03    TRUST: %02d    SAFETY: %02d" % [served_customers, trust, safety_score], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dce8f4"))
     draw_string(ThemeDB.fallback_font, Vector2(430.0, 502.0), "WASD: move   E: interact   Q: ask", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("c4cfdd"))
     draw_rect(Rect2(650.0, 72.0, 210.0, 40.0), Color("182130"), true)
     draw_string(ThemeDB.fallback_font, Vector2(668.0, 98.0), "CASH: $%02d    HANDS: %s" % [cash, held_item if held_item != "" else "empty"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("dce8f4"))
-    if customer_active:
+    if incident_active:
+        draw_rect(Rect2(150.0, 300.0, 660.0, 150.0), Color("241d2a"), true)
+        draw_rect(Rect2(150.0, 300.0, 660.0, 150.0), Color("d59cbd"), false, 2.0)
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 330.0), "NIGHT-SHIFT INCIDENT", HORIZONTAL_ALIGNMENT_LEFT, 600, 20, Color("ffd5e7"))
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 358.0), "Someone is unresponsive in the bathroom.", HORIZONTAL_ALIGNMENT_LEFT, 600, 16, Color("f4e8f0"))
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 386.0), "Go there, keep the area clear, and press E to check safely.", HORIZONTAL_ALIGNMENT_LEFT, 600, 15, Color("e7c9da"))
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 418.0), "The manager's emergency policy sheet is missing page two.", HORIZONTAL_ALIGNMENT_LEFT, 600, 14, Color("d8b4ca"))
+    elif customer_active:
         var encounter: Dictionary = encounters[current_encounter]
         draw_rect(Rect2(210.0, 316.0, 540.0, 148.0), Color("101622"), true)
         draw_rect(Rect2(210.0, 316.0, 540.0, 148.0), Color("e8c18d"), false, 2.0)
