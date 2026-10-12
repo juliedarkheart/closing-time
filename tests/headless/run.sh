@@ -28,7 +28,7 @@ fi
 for test in "$PROJECT_DIR"/tests/headless/*_test.gd; do
     name="$(basename "$test")"
     echo "== $name ==" | tee -a "$LOG"
-    timeout "$TEST_TIMEOUT" "$GODOT_BIN" --headless --path "$PROJECT_DIR" --script "$test" 2>&1 \
+    timeout "$TEST_TIMEOUT" "$GODOT_BIN" --headless --path "$PROJECT_DIR" --script "$test" -- --shift-seed=1001 2>&1 \
         | grep -vE '^(Godot Engine v|$)' | tee -a "$LOG"
     test_status="${PIPESTATUS[0]}"
     echo "status=$test_status" | tee -a "$LOG"

@@ -35,13 +35,23 @@ Same seed reproduces the same shift. A shift launched without a fixed seed uses 
 
 ## Run
 
-Open this folder in Godot 4 and run the project, or:
+Play a random shift:
 
 ```bash
-godot --path .
+./play.sh
 ```
 
+Play a specific, reproducible shift:
+
+```bash
+./play.sh 1001
+```
+
+Or open the folder in Godot 4 and run the project. `--shift-seed=<n>` after `--` sets the seed from the command line; the seed in play is shown as `SHIFT #<seed>` in the HUD.
+
 Godot 4.6.3 (`4.6.3.stable.official.7d41c59c4`) is installed at `~/.local/bin/godot` on the development host.
+
+The playtest runbook for the first human session is `production/playtests/runbook-overnight-graybox.md`.
 
 ## Verify
 

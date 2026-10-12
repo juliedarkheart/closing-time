@@ -53,12 +53,23 @@ var completed_opening_tasks: int = 0
 var fridge_sheet: Texture2D
 var checkout_sheet: Texture2D
 
+func _read_seed_override() -> int:
+    for argument in OS.get_cmdline_user_args():
+        if argument.begins_with("--shift-seed="):
+            var value := argument.trim_prefix("--shift-seed=")
+            if value.is_valid_int():
+                return int(value)
+    return 0
+
 func _ready() -> void:
     fridge_sheet = _load_local_texture(FRIDGE_PATH)
     checkout_sheet = _load_local_texture(CHECKOUT_PATH)
     var seed_value := shift_seed
     if seed_value == 0:
+        seed_value = _read_seed_override()
+    if seed_value == 0:
         seed_value = int(Time.get_unix_time_from_system())
+    shift_seed = seed_value
     randomizer.seed = seed_value
     shift_generator = ShiftGenerator.new(seed_value)
     shift_data = shift_generator.generate_shift(3)
