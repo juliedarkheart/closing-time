@@ -49,7 +49,8 @@ func _init(seed_value: int = 0) -> void:
 func generate_shift(customer_count: int) -> Dictionary:
     var encounters: Array[Dictionary] = []
     var available := customer_blueprints.duplicate(true)
-    var browse_offsets: Array[Vector2] = [Vector2(-34.0, 48.0), Vector2(36.0, 42.0), Vector2(-28.0, -52.0), Vector2(30.0, -46.0)]
+    # Small in-aisle offsets: big offsets push browsing customers into fixtures.
+    var browse_offsets: Array[Vector2] = [Vector2(-16.0, 10.0), Vector2(14.0, 12.0), Vector2(-12.0, -14.0), Vector2(16.0, -10.0)]
     for index in range(min(customer_count, available.size())):
         var selected := randomizer.randi_range(0, available.size() - 1)
         var encounter: Dictionary = available[selected].duplicate(true)

@@ -9,6 +9,9 @@ A tiny cozy mystery game about running one strange overnight shift at a roadside
 The overnight graybox slice is implemented in Godot 4.6 (Compatibility renderer). One scene contains:
 
 - WASD/arrow movement through a compact shop
+- A floor plan modelled on a real convenience store: parking and glass frontage, entrance right of centre, front counter facing the lot, coffee and hot food island on the entrance sightline, dry goods and snack gondola runs down the middle, cold vault on the back wall, restroom and back room at the back (`design/research/convenience-store-layouts.md`)
+- A shift clipboard listing the current objectives with tick marks, plus fixture signage and a proximity prompt on every interactable (`design/research/shift-game-ux-and-wayfinding.md`)
+- Text that wraps to its panel, with panels sized to their text, so nothing clips
 - Three shelf categories (`cold`, `warm`, `odd`) with visible stock counts
 - Two seeded opening chores that must be completed at the correct shelf before the first customer
 - Visible customers who enter, browse a shelf, wander a second browse point, walk to the register, and leave after service

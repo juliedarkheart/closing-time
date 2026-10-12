@@ -27,6 +27,8 @@ You are the only person awake at a small shop on a dark road. The comfort comes 
 - No question that exists only to advance text
 - No cruelty disguised as comedy
 - No incident that exists only as panel text when the world could show it
+- No clipped, truncated or unreadable interface text
+- No objective the player could not have read somewhere on screen
 
 ## Core loop
 
@@ -54,6 +56,14 @@ You are the only person awake at a small shop on a dark road. The comfort comes 
 ### Observability rule
 
 Anything that would be visible in a real shop must be visible in this one. Customers physically enter, shop, and queue. Incidents appear as evidence in the space: a puddle, an empty shelf slot, a body on the bathroom floor, a coupon on the counter, a car idling outside. Text labels the state and records the outcome; it never substitutes for the evidence. The player should identify a problem by looking at the shop, walk to it, inspect it, and then act — which is also why equipment matters: the mop has to be fetched before a spill can be cleaned.
+
+### Shop layout
+
+The floor plan is modelled on a real convenience store rather than invented. Parking and the glass frontage sit at the front; the entrance is right of centre, because shoppers drift right on entry. The front counter sits just inside the door facing the glass, so the cashier can see the lot and the queue never blocks the entrance. Coffee and hot food form a self-serve island on the entrance sightline. Two gondola runs down the middle carry dry goods and snacks with a walkable aisle between them. The cold vault is set against the back wall, because cold drinks are what people came for and the walk to the back is what makes them pass everything else. The restroom and the back room — mop, bucket, supplies — sit at the back. The register deliberately cannot see the back corner, which is what makes a shoplifting incident possible in the first place. Full sourcing and dimensions: `design/research/convenience-store-layouts.md`.
+
+### Readability rules
+
+The workload should feel heavy; the interface should feel calm. Text wraps to its panel and panels size to their text, so nothing is ever clipped. A shift clipboard shows the current objectives with tick marks. Every interactable announces itself with a proximity prompt naming the object and the action. Fixtures carry identification signage. Any refused action explains itself. These are not polish — they are the difference between designed friction and a bug. Applied detail: `design/research/shift-game-ux-and-wayfinding.md`.
 
 ## Night-shift incident tone
 
