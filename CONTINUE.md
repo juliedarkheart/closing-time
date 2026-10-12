@@ -3,34 +3,40 @@
 ## Current state
 
 - Repository: `https://github.com/juliedarkheart/closing-time`
-- Branch: `main`, clean and synced
-- HMGS tracking bridge committed at `54d5379`.
-- Godot 4.6.3 installed at `~/.local/bin/godot`.
-- Three-customer graybox loop committed at `e9c5fee`.
+- Branch: `main`
+- Project path: `/home/julie/hermes-workspace/closing-time`
+- Godot 4.6.3 at `~/.local/bin/godot` (`4.6.3.stable.official.7d41c59c4`), Compatibility renderer
+- Stage: prototype, slice `overnight-graybox`
+- Verification: `GODOT_BIN=/home/julie/.local/bin/godot ./tests/headless/run.sh` (passing)
 
 ## Working
 
-- Headless Godot editor import passed.
-- Headless project run passed for 8 seconds with no reported errors.
-- Graybox now includes movement, register interaction, three encounters, two choices per encounter, state changes, and a dawn result.
+- Hands-on store loop: opening chores, shelf retrieval, register service, useful questions.
+- Visible customers: entry, browse, wander, register wait, exit, with per-customer generated browse points.
+- Seeded procedural shift covering customer cast and order, incident schedule, starting stock, store condition, opening chores, and mystery thread.
+- Five authored incidents with no duplicate type inside a shift.
+- Two-stage incident handling: visible evidence in the world, then inspect, then act. Text labels the state; it is not the only evidence.
+- Spill requires fetching the mop from the utility corner before it can be cleaned.
+- Aftermath evidence persists after resolution (wet-floor sign, shelf gap, cleared bathroom tag, abandoned coupon, parked car).
+- `N` starts a new seeded shift.
+- Headless suite: opening-chore gate, customer flow, seeded reproducibility, incident investigation, mop requirement, aftermath, render check, new-shift reset.
 
 ## Not verified
 
-- Manual keyboard movement and register interaction.
-- Blind playtest.
-- Final art/audio and LimeZu import.
+- Human playtest by keyboard at the desktop (headless tests only).
+- Blind playtest with recorded reactions.
+- LimeZu art pass beyond the fridge and checkout sprites.
+- Audio, lighting, weather, second shift.
 
 ## Next actions
 
-1. Run the project interactively and test movement, `E`, `1`, and `2`.
-2. Fix any input or presentation issues found manually.
-3. Run the first blind playtest and complete the seeded report.
-4. Only then start the LimeZu art pass.
+1. Run a human keyboard playtest of one full shift and record it in `production/playtests/`.
+2. Add the remaining visual incident evidence for exterior/parking-lot and shelf-gap cases.
+3. Expand incident count and authored incident pool so repeated shifts vary more.
+4. Grow the customer loop: multiple customers waiting at once, queue pressure, and per-customer browsing differences that matter.
 
-## Path repair and desktop smoke
+## Guardrails
 
-- The old literal Windows workspace path was removed.
-- The project now lives at `/home/julie/hermes-workspace/closing-time`.
-- Godot 4.6.3 launched a visible `Closing Time (DEBUG)` window from the new path.
-- Automated desktop input smoke sent movement plus `E`, `1`, and `2`; the process remained alive.
-- Full human blind playtest remains pending.
+- Do not commit raw LimeZu assets (`licensed_assets/` stays ignored).
+- Do not claim manual acceptance from headless execution alone.
+- Do not describe an incident only in text when the world can show it.

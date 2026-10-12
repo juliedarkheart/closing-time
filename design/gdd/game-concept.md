@@ -26,6 +26,7 @@ You are the only person awake at a small shop on a dark road. The comfort comes 
 - No giant dialogue tree
 - No question that exists only to advance text
 - No cruelty disguised as comedy
+- No incident that exists only as panel text when the world could show it
 
 ## Core loop
 
@@ -50,6 +51,10 @@ You are the only person awake at a small shop on a dark road. The comfort comes 
 - Serving with empty hands is refused and costs time/trust.
 - A question must reveal the requested category, improve trust, or expose a clue. Otherwise it does not belong in the game.
 
+### Observability rule
+
+Anything that would be visible in a real shop must be visible in this one. Customers physically enter, shop, and queue. Incidents appear as evidence in the space: a puddle, an empty shelf slot, a body on the bathroom floor, a coupon on the counter, a car idling outside. Text labels the state and records the outcome; it never substitutes for the evidence. The player should identify a problem by looking at the shop, walk to it, inspect it, and then act — which is also why equipment matters: the mop has to be fetched before a spill can be cleaned.
+
 ## Night-shift incident tone
 
 The comedy comes from the impossible workload, bad timing, and absurd store procedures—not from mocking addiction, homelessness, illness, or anyone who needs help. Incidents should give the player a clear humane response while making the situation mechanically inconvenient.
@@ -66,7 +71,7 @@ Incidents are authored, seeded, and interruptible. They should create priority c
 
 ## MVP slice
 
-One shop, one 8–12 minute shift, three customers, three shelf categories, six stock units, one useful question per customer, two night-shift incidents, one mystery thread, and a dawn summary.
+One shop, one 8–12 minute shift, three customers, three shelf categories, six stock units, two opening chores, one useful question per customer, two to three night-shift incidents, one mystery thread, and a dawn summary. The whole shift is assembled from one seed, so the same seed replays the same night and a new seed replays a different one.
 
 ## Cheap Steam target
 

@@ -6,29 +6,68 @@ A tiny cozy mystery game about running one strange overnight shift at a roadside
 
 ## Current state
 
-The first graybox slice is implemented in Godot 4. It currently contains one scene with:
+The overnight graybox slice is implemented in Godot 4.6 (Compatibility renderer). One scene contains:
 
-- WASD/arrow movement
-- A compact shop layout
-- A register interaction using `E`
-- Three deterministic customer encounters
-- Two choices per encounter using `1` and `2`
-- Cash, stock, trust, customer count, and mystery-clue feedback
-- A dawn result after the third customer
+- WASD/arrow movement through a compact shop
+- Three shelf categories (`cold`, `warm`, `odd`) with visible stock counts
+- Two seeded opening chores that must be completed at the correct shelf before the first customer
+- Visible customers who enter, browse a shelf, wander a second browse point, walk to the register, and leave after service
+- Useful customer questions on `Q`
+- Register service with cash, trust, and stock consequences
+- A seeded procedural shift: customer cast and order, incident schedule, starting stock, store condition, opening chores, and mystery thread all come from one seed
+- Five authored night-shift incidents, selected without repeating a type in a shift
+- Two-stage incident handling: notice the visible evidence, walk over and inspect it, then act on what you find
+- A mop tool the recurring spill requires before it can be cleaned
+- Persistent aftermath evidence so the shop remembers what happened
+- Shift handoff summary at dawn
+- `N` starts a fresh seeded shift without restarting the game
+
+Same seed reproduces the same shift. A shift launched without a fixed seed uses the current time, so each run differs.
+
+## Controls
+
+| Key | Action |
+| --- | --- |
+| WASD / arrows | Move |
+| `E` | Interact: take stock, serve, inspect and handle incidents, take the mop, start a shift |
+| `Q` | Ask the waiting customer one useful question |
+| `N` | Start a new seeded shift |
 
 ## Run
 
-Open this folder in Godot 4 and run the project. Godot 4.6.3 is installed at `~/.local/bin/godot` on the development host. Headless editor import and an 8-second headless project run passed at commit `e9c5fee`.
+Open this folder in Godot 4 and run the project, or:
 
-Manual input testing is still pending.
+```bash
+godot --path .
+```
+
+Godot 4.6.3 (`4.6.3.stable.official.7d41c59c4`) is installed at `~/.local/bin/godot` on the development host.
+
+## Verify
+
+```bash
+GODOT_BIN=/home/julie/.local/bin/godot ./tests/headless/run.sh
+```
+
+The suite runs the editor import plus every `tests/headless/*_test.gd` and fails on a non-zero status or any `SCRIPT ERROR`. It covers the opening-chore gate, the visible customer flow, seeded reproducibility, two-stage incident investigation, the mop requirement, aftermath evidence, rendering, and starting a new shift.
+
+Automated headless tests do not replace a human playtest. Manual keyboard play and the blind playtest are still outstanding.
 
 ## Scope guardrails
 
 - One shop
 - One overnight shift
 - Short replayable mystery
+- Authored content pools with seeded combination, never generated prose
 - No multiplayer, open world, crafting, farming, or procedural town simulation
 
 ## Asset note
 
-Julie owns the paid LimeZu packs used for the planned art pass. We will keep the supplied license files and include attribution in-game. Raw source assets will not be redistributed.
+Julie owns the paid LimeZu packs used for the planned art pass. We will keep the supplied license files and include attribution in-game:
+
+```text
+Pixel art assets by LimeZu
+https://limezu.itch.io/
+```
+
+Raw source assets stay outside the repository and are never redistributed.
