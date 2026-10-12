@@ -9,14 +9,15 @@
 5. **Useful question system** — one question per customer with a mechanical result.
 6. **Consequences** — cash, shelf stock, trust, clues, and customer progress change visibly.
 7. **Night-shift incident system** — authored seeded incidents interrupt routine work and require a safe first response.
-8. **Dawn summary and ending** — summarize service quality, incidents, trust, clues, and outcome.
+8. **Procedural shift generator** — one seed assembles the customer cast, incident schedule, starting stock, store condition, and mystery thread.
+9. **Dawn summary and ending** — summarize service quality, incidents, trust, clues, and outcome.
 
 ## NICE TO HAVE
 
-9. Restock order screen between customers
-10. Animated customer sprites
-11. Save/load
-12. Accessibility options
-13. Steam achievements
-14. Weather and ambient audio
-15. Alternate customer outcomes
+10. Restock order screen between customers
+11. Animated customer sprites
+12. Save/load
+13. Accessibility options
+14. Steam achievements
+15. Weather and ambient audio
+16. Alternate customer outcomes
