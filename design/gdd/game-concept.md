@@ -14,6 +14,7 @@ You are the only person awake at a small shop on a dark road. The comfort comes 
 2. **Small meaningful decisions:** stock, questions, and service choices change cash, stock, trust, clues, and dawn outcomes.
 3. **Cozy mystery:** the shop routine is calm and readable, while customer details gradually become strange.
 4. **Compact place, strong atmosphere:** one shop should feel like a safe little island on the road.
+5. **Night-shift absurdity:** the player keeps trying to do ordinary work while ridiculous, inconvenient incidents arrive one after another.
 
 ## Anti-pillars
 
@@ -24,6 +25,7 @@ You are the only person awake at a small shop on a dark road. The comfort comes 
 - No spreadsheet economy
 - No giant dialogue tree
 - No question that exists only to advance text
+- No cruelty disguised as comedy
 
 ## Core loop
 
@@ -36,7 +38,8 @@ You are the only person awake at a small shop on a dark road. The comfort comes 
 5. Walk to a shelf and take an item.
 6. Return to the register and serve them.
 7. See the result: cash, stock, trust, and a clue change.
-8. Repeat until dawn.
+8. Respond to any active night-shift incident before it becomes a safety, stock, or customer-service problem.
+9. Repeat until dawn.
 
 ### Customer interaction rules
 
@@ -47,9 +50,23 @@ You are the only person awake at a small shop on a dark road. The comfort comes 
 - Serving with empty hands is refused and costs time/trust.
 - A question must reveal the requested category, improve trust, or expose a clue. Otherwise it does not belong in the game.
 
+## Night-shift incident tone
+
+The comedy comes from the impossible workload, bad timing, and absurd store procedures—not from mocking addiction, homelessness, illness, or anyone who needs help. Incidents should give the player a clear humane response while making the situation mechanically inconvenient.
+
+Examples:
+
+- **Bathroom customer:** someone has passed out or become unwell. Check the stall, call the appropriate help, keep other customers away, and document the incident. The parody is that the manager's laminated “bathroom escalation” sheet is missing the page that explains what to do next.
+- **Shoplifter:** a customer pockets an item while another customer is waiting at the register. The player can confront them, alert the manager, block the exit, or let the item go. Each response affects safety, time, stock, and trust.
+- **Parking-lot sleeper:** someone is asleep in a running car. The player can check from a safe distance, call for help, or leave a note. Investigating may reveal a clue, but the player should not be rewarded for reckless heroics.
+- **Coupon war:** a customer presents a coupon that is obviously from another universe, another decade, or possibly both. Refusing it is safe; accepting it may create a funny but costly register problem.
+- **The impossible spill:** the player cleans the same spill twice, then discovers the source is a customer, a broken cooler, or something that should not be melting.
+
+Incidents are authored, seeded, and interruptible. They should create priority conflicts rather than random punishment. A successful response earns relief, trust, or a clue; an imperfect response leaves a visible handoff note instead of instantly ending the shift.
+
 ## MVP slice
 
-One shop, one 8–12 minute shift, three customers, three shelf categories, six stock units, one useful question per customer, one mystery thread, and a dawn summary.
+One shop, one 8–12 minute shift, three customers, three shelf categories, six stock units, one useful question per customer, two night-shift incidents, one mystery thread, and a dawn summary.
 
 ## Cheap Steam target
 

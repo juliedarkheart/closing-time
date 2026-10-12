@@ -85,6 +85,35 @@ Papers, Please demonstrates how a small repeated decision can gain weight when t
 - **Random lore generation:** oddness without a practical response becomes flavor text. Every strange detail needs an observable consequence or a meaningful choice.
 - **Constant horror escalation:** if every customer is alarming, nothing is comforting. Preserve quiet stretches, familiar regulars, and satisfying cleanup work.
 
+## Night-shift craziness and parody
+
+The overnight shift should also have a comic pressure layer: the player is trying to stock shelves and make the store feel welcoming while dealing with the kind of incidents that make a real clerk say, “I am not trained for this.” The comedy should come from timing, bureaucracy, contradictory priorities, and the store's inadequate procedures—not from treating addiction, homelessness, illness, or vulnerability as inherently funny.
+
+### Incident families
+
+| Incident | Player problem | Possible responses | Consequence space |
+|---|---|---|---|
+| Bathroom emergency | A customer is unconscious or unwell while someone waits at checkout | Check safely, call for help, secure the area, document it | Safety, time, trust, handoff |
+| Shoplifting | A customer pockets an item during another task | Alert manager, confront cautiously, block the exit, let it go | Stock, safety, cash, reputation |
+| Parking-lot sleeper | Someone is asleep in a running car | Observe from safety, call assistance, leave a note | Clue, time, safety |
+| Impossible coupon | The coupon is invalid, bizarre, or clearly not for this store | Refuse, ask for clarification, accept and report it | Cash, customer mood, mystery |
+| Recurring spill | A mess returns after being cleaned | Re-clean, inspect the source, mark it for handoff | Cleanliness, time, clue |
+
+Each incident should have a humane baseline response that is easy to discover. The funny part is the collision with the rest of the shift: the bathroom call happens during a rush, the thief chooses the exact moment the cooler alarm starts, or the manager texts a useless policy screenshot instead of useful help.
+
+### Design rule
+
+Treat an incident as a playable interruption, not a cutscene. It should ask the player to move, inspect, choose, or document something, then leave a state change the player can see. Do not make the player a vigilante, medical professional, or police officer. The player is a clerk making a safe first response and deciding what can wait.
+
+### Recommended escalation
+
+1. **Absurd but harmless:** impossible coupon, customer arguing with the coffee machine, someone asking for directions to a place that is not on the map.
+2. **Inconvenient:** recurring spill, blocked restroom, delivery mistake, shoplifter.
+3. **Safety-sensitive:** passed-out customer, suspicious vehicle, electrical fault, aggressive customer.
+4. **Mystery-linked:** an incident that appears ordinary until a later customer describes the same detail.
+
+Do not make every incident supernatural. The funniest and strangest nights need ordinary problems mixed with the genuinely inexplicable ones.
+
 ## Storyline inspiration, transformed into original design seeds
 
 These are structural inspirations only. Do not copy their plots, characters, names, dialogue, creatures, visual signatures, or distinctive reveals.
@@ -165,10 +194,11 @@ Do not add six customers or a large mystery yet. Build one complete encounter th
 2. A customer arrives with a practical request and a strange tell.
 3. The player can ask one question.
 4. The player must retrieve, inspect, substitute, or refuse an item.
-5. A shop task becomes urgent while the player is away from the register.
-6. The player serves or helps the customer.
-7. The result changes at least two visible state values and leaves one clue.
-8. The player can see what the morning handoff records.
+5. A night-shift incident interrupts the store routine.
+6. The player makes a safe first response while another task waits.
+7. The player serves or helps the customer.
+8. The result changes at least two visible state values and leaves one clue or handoff note.
+9. The player can see what the morning handoff records.
 
 If that encounter is satisfying, expand it into three authored encounter families. If it is not satisfying, more lore will not fix it.
 
