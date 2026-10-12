@@ -25,7 +25,9 @@ var held_item: String = ""
 var shelf_stock: Dictionary = {"cold": 2, "warm": 2, "odd": 2}
 var dawn_reached: bool = false
 var incident_active: bool = false
+var incident_kind: String = ""
 var incident_resolved: bool = false
+var shoplifting_resolved: bool = false
 var safety_score: int = 0
 var handoff_notes: int = 0
 var message: String = "The night shift begins. Stock the shelves, then check the register."
@@ -84,10 +86,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _interact() -> void:
     if incident_active:
-        if BATHROOM_RECT.grow(28.0).has_point(player_position):
+        if incident_kind == "bathroom" and BATHROOM_RECT.grow(28.0).has_point(player_position):
             _resolve_bathroom_incident()
+        elif incident_kind == "shoplifting" and SHELF_RECTS["odd"].grow(28.0).has_point(player_position):
+            _resolve_shoplifting_incident()
         else:
-            message = "The bathroom needs attention first. Keep customers clear and check it safely."
+            message = "The active incident needs attention first. Do not chase trouble across the whole store."
             message_time = 4.0
         return
     if customer_active and REGISTER_RECT.grow(28.0).has_point(player_position):
@@ -103,7 +107,7 @@ func _interact() -> void:
 
 func _start_next_encounter() -> void:
     if incident_active:
-        message = "You cannot call the next customer while the bathroom incident is unresolved."
+        message = "You cannot call the next customer while the active incident is unresolved."
         message_time = 4.0
         return
     if served_customers >= encounters.size():
@@ -164,17 +168,34 @@ func _serve_customer() -> void:
     served_customers += 1
     if served_customers == 1 and not incident_resolved:
         incident_active = true
+        incident_kind = "bathroom"
         message = "A customer is unresponsive in the bathroom. Keep the area clear and check safely."
+        message_time = 6.0
+    elif served_customers == 2 and not shoplifting_resolved:
+        incident_active = true
+        incident_kind = "shoplifting"
+        shelf_stock["odd"] = max(0, int(shelf_stock["odd"]) - 1)
+        message = "A customer pockets something from the odd shelf and heads for the door."
         message_time = 6.0
     else:
         message_time = 6.0
 
 func _resolve_bathroom_incident() -> void:
     incident_active = false
+    incident_kind = ""
     incident_resolved = true
     safety_score += 1
     handoff_notes += 1
     message = "You check from the doorway, call the manager, and keep customers away. Incident logged."
+    message_time = 6.0
+
+func _resolve_shoplifting_incident() -> void:
+    incident_active = false
+    incident_kind = ""
+    shoplifting_resolved = true
+    safety_score += 1
+    handoff_notes += 1
+    message = "You do not chase them. You note the description, call the manager, and log one missing item."
     message_time = 6.0
 
 func _load_local_texture(resource_path: String) -> Texture2D:
@@ -216,13 +237,20 @@ func _draw() -> void:
     draw_string(ThemeDB.fallback_font, Vector2(430.0, 502.0), "WASD: move   E: interact   Q: ask", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("c4cfdd"))
     draw_rect(Rect2(650.0, 72.0, 210.0, 40.0), Color("182130"), true)
     draw_string(ThemeDB.fallback_font, Vector2(668.0, 98.0), "CASH: $%02d    HANDS: %s" % [cash, held_item if held_item != "" else "empty"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("dce8f4"))
-    if incident_active:
+    if incident_active and incident_kind == "bathroom":
         draw_rect(Rect2(150.0, 300.0, 660.0, 150.0), Color("241d2a"), true)
         draw_rect(Rect2(150.0, 300.0, 660.0, 150.0), Color("d59cbd"), false, 2.0)
         draw_string(ThemeDB.fallback_font, Vector2(175.0, 330.0), "NIGHT-SHIFT INCIDENT", HORIZONTAL_ALIGNMENT_LEFT, 600, 20, Color("ffd5e7"))
         draw_string(ThemeDB.fallback_font, Vector2(175.0, 358.0), "Someone is unresponsive in the bathroom.", HORIZONTAL_ALIGNMENT_LEFT, 600, 16, Color("f4e8f0"))
         draw_string(ThemeDB.fallback_font, Vector2(175.0, 386.0), "Go there, keep the area clear, and press E to check safely.", HORIZONTAL_ALIGNMENT_LEFT, 600, 15, Color("e7c9da"))
         draw_string(ThemeDB.fallback_font, Vector2(175.0, 418.0), "The manager's emergency policy sheet is missing page two.", HORIZONTAL_ALIGNMENT_LEFT, 600, 14, Color("d8b4ca"))
+    elif incident_active and incident_kind == "shoplifting":
+        draw_rect(Rect2(150.0, 300.0, 660.0, 150.0), Color("30231c"), true)
+        draw_rect(Rect2(150.0, 300.0, 660.0, 150.0), Color("e0a56e"), false, 2.0)
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 330.0), "NIGHT-SHIFT INCIDENT", HORIZONTAL_ALIGNMENT_LEFT, 600, 20, Color("ffe0b8"))
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 358.0), "Someone took an item from the odd shelf.", HORIZONTAL_ALIGNMENT_LEFT, 600, 16, Color("fff0dc"))
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 386.0), "Go to the shelf, document it, and let the manager handle the chase.", HORIZONTAL_ALIGNMENT_LEFT, 600, 15, Color("f1d1ad"))
+        draw_string(ThemeDB.fallback_font, Vector2(175.0, 418.0), "The camera is pointed at the ceiling again.", HORIZONTAL_ALIGNMENT_LEFT, 600, 14, Color("dfb58c"))
     elif customer_active:
         var encounter: Dictionary = encounters[current_encounter]
         draw_rect(Rect2(210.0, 316.0, 540.0, 148.0), Color("101622"), true)
